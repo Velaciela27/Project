@@ -1,0 +1,151 @@
+---
+title: "Project 1"
+author: "Kai Lyu"
+date: "June 3, 2018"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(arfima)
+library(Quandl)
+library(quantmod)
+library(moments)
+library(tseries)
+library(stats)
+library(aTSA)
+library(rugarch)
+library(fUnitRoots)
+library(ggplot2)
+library(forecast)
+```
+
+## Download date
+
+
+```{r BIT}
+Rawdata <- Quandl("BITSTAMP/USD")
+LastPrice <- Rawdata$Last[length(Rawdata$Last):1]
+OverView=xts(LastPrice,order.by=as.Date(Rawdata$Date[length(Rawdata$Last):1]))
+ReturnRate <- dailyReturn(OverView,type="log")
+chartSeries(OverView, theme = 'white')
+```
+
+
+
+```{r}
+
+data(tmpyr)
+
+fit2 <- arfima::arfima(tmpyr, order = c(1, 0, 1), numeach = c(3, 3), dmean = TRUE, back=T)
+fit2
+
+
+fit1 <- arfima::arfima(tmpyr, order = c(1, 0, 1), numeach = c(3, 3), dmean = FALSE, back=T)
+fit1
+
+
+tacfplot(list(fit1, fit2))
+```
+
+```{r}
+set.seed(8765)
+sim <- arfima.sim(1000, model = list(phi = 0.4, theta = 0.9, dfrac = 0.4))
+fit <- arfima::arfima(sim, order = c(1, 0, 1), back=T)
+fit
+fit <- bestModes(fit, 2)
+fit
+
+print(fit)
+
+
+
+
+```
+
+```{r}
+
+
+set.seed(82365)
+sim <- arfima.sim(1000, model = list(dfrac = 0.4, theta=0.9, dint = 1))
+fit <- arfima::arfima(sim, order = c(0, 1, 1), back=T)
+fit
+pred <- predict(fit, n.ahead = 5)
+pred
+plot(pred)
+
+plot(pred, numback = 50)
+```
+
+
+```{r}
+
+set.seed(3452)
+sim <- arfima.sim(1000, model = list(phi = c(0.3, -0.1)))
+lARFIMA(tmpyr, dfrac =0.27)
+
+
+```
+
+
+
+
+
+```{r}
+i <- 1
+d <- -0.5
+aic <- list()
+dfrac <- list()
+data(tmpyr)
+while (d<0.4999999){
+  fitt <- forecast::arfima(tmpyr, drange = c(d,d+0.01))
+  aic[i] <- AIC(fitt)
+  dfrac[i] <- fitt$d
+  d <- d+0.01
+  i <- i+1
+
+}
+plot(x = dfrac, y = aic)
+
+
+```
+
+
+
+
+```{r}
+i <- 1
+d <- -0.5
+aic <- list()
+dfrac <- list()
+sim <- arfima.sim(1000, model = list(phi = c(0.3, -0.1)))
+while (d<0.4999999){
+  fitt <- forecast::arfima(sim, drange = c(d,d+0.01))
+  aic[i] <- AIC(fitt)
+  dfrac[i] <- fitt$d
+  d <- d+0.01
+  i <- i+1
+
+}
+plot(x = dfrac, y = aic)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
